@@ -5,6 +5,8 @@
  * bytes 2400+ are currently ununsed, but might be used for future wled features
  */
 
+#include "Arduino.h"
+
 //Use userVar0 and userVar1 (API calls &U0=,&U1=, uint16_t)
 
 void userBeginPreConnection()

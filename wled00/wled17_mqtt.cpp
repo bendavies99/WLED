@@ -2,27 +2,39 @@
  * MQTT communication protocol for home automation
  */
 
+#include "Arduino.h"
+#include "wled00.h"
+
 #define WLED_MQTT_PORT 1883
 
-void parseMQTTBriPayload(char* payload)
+void parseMQTTBriPayload(char *payload)
 {
-  if      (strstr(payload, "ON") || strstr(payload, "on") || strstr(payload, "true")) {bri = briLast; colorUpdated(1);}
-  else if (strstr(payload, "T" ) || strstr(payload, "t" )) {toggleOnOff(); colorUpdated(1);}
-  else {
+  if (strstr(payload, "ON") || strstr(payload, "on") || strstr(payload, "true"))
+  {
+    bri = briLast;
+    colorUpdated(1);
+  }
+  else if (strstr(payload, "T") || strstr(payload, "t"))
+  {
+    toggleOnOff();
+    colorUpdated(1);
+  }
+  else
+  {
     uint8_t in = strtoul(payload, NULL, 10);
-    if (in == 0 && bri > 0) briLast = bri;
+    if (in == 0 && bri > 0)
+      briLast = bri;
     bri = in;
     colorUpdated(1);
   }
 }
-
 
 void onMqttConnect(bool sessionPresent)
 {
   //(re)subscribe to required topics
   char subuf[38];
   strcpy(subuf, mqttDeviceTopic);
-  
+
   if (mqttDeviceTopic[0] != 0)
   {
     strcpy(subuf, mqttDeviceTopic);
@@ -50,8 +62,8 @@ void onMqttConnect(bool sessionPresent)
   DEBUG_PRINTLN("MQTT ready");
 }
 
-
-void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
+{
 
   DEBUG_PRINT("MQTT callb rec: ");
   DEBUG_PRINTLN(topic);
@@ -61,32 +73,36 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
 
   if (strstr(topic, "/col"))
   {
-    colorFromDecOrHexString(col, (char*)payload);
+    colorFromDecOrHexString(col, (char *)payload);
     colorUpdated(1);
-  } else if (strstr(topic, "/api"))
+  }
+  else if (strstr(topic, "/api"))
   {
     String apireq = "win&";
-    apireq += (char*)payload;
+    apireq += (char *)payload;
     handleSet(nullptr, apireq);
-  } else parseMQTTBriPayload(payload);
+  }
+  else
+    parseMQTTBriPayload(payload);
 }
-
 
 void publishMqtt()
 {
-  if (mqtt == NULL) return;
-  if (!mqtt->connected()) return;
+  if (mqtt == NULL)
+    return;
+  if (!mqtt->connected())
+    return;
   DEBUG_PRINTLN("Publish MQTT");
 
   char s[10];
   char subuf[38];
-  
+
   sprintf(s, "%ld", bri);
   strcpy(subuf, mqttDeviceTopic);
   strcat(subuf, "/g");
   mqtt->publish(subuf, 0, true, s);
 
-  sprintf(s, "#%06X", col[3]*16777216 + col[0]*65536 + col[1]*256 + col[2]);
+  sprintf(s, "#%06X", col[3] * 16777216 + col[0] * 65536 + col[1] * 256 + col[2]);
   strcpy(subuf, mqttDeviceTopic);
   strcat(subuf, "/c");
   mqtt->publish(subuf, 0, true, s);
@@ -102,9 +118,9 @@ const char HA_static_JSON[] PROGMEM = R"=====(,"bri_val_tpl":"{{value}}","rgb_cm
 
 void sendHADiscoveryMQTT()
 {
-  
+
 #if ARDUINO_ARCH_ESP32 || LEDPIN != 3
-/*
+  /*
 
 YYYY is discovery tipic
 XXXX is device name
@@ -149,7 +165,7 @@ Send out HA MQTT Discovery message on MQTT connect (~2.4kB):
   strcat(bufg, "/g");
   strcat(bufapi, "/api");
 
-  StaticJsonDocument<JSON_OBJECT_SIZE(9) +512> root;
+  StaticJsonDocument<JSON_OBJECT_SIZE(9) + 512> root;
   root["name"] = serverDescription;
   root["stat_t"] = bufc;
   root["cmd_t"] = mqttDeviceTopic;
@@ -165,10 +181,10 @@ Send out HA MQTT Discovery message on MQTT connect (~2.4kB):
   serializeJson(root, buffer, jlen);
 
   //add values which don't change
-  strcpy_P(buffer + jlen -1, HA_static_JSON);
+  strcpy_P(buffer + jlen - 1, HA_static_JSON);
 
   olen = 0;
-  obuf = buffer + jlen -1 + strlen_P(HA_static_JSON);
+  obuf = buffer + jlen - 1 + strlen_P(HA_static_JSON);
 
   //add fx_list
   uint16_t jmnlen = strlen_P(JSON_mode_names);
@@ -178,13 +194,13 @@ Send out HA MQTT Discovery message on MQTT connect (~2.4kB):
 
   for (uint16_t j = 0; j < jmnlen; j++)
   {
-    if (pgm_read_byte(JSON_mode_names + j) == '\"' || j == jmnlen -1)
+    if (pgm_read_byte(JSON_mode_names + j) == '\"' || j == jmnlen - 1)
     {
-      if (isNameStart) 
+      if (isNameStart)
       {
-        nameStart = j +1;
+        nameStart = j + 1;
       }
-      else 
+      else
       {
         nameEnd = j;
         char mdnfx[64], mdn[56];
@@ -197,7 +213,7 @@ Send out HA MQTT Discovery message on MQTT connect (~2.4kB):
         i++;
       }
       isNameStart = !isNameStart;
-    }   
+    }
   }
   olen--;
   oappend("]}");
@@ -215,16 +231,22 @@ Send out HA MQTT Discovery message on MQTT connect (~2.4kB):
 
 bool initMqtt()
 {
-  if (mqttServer[0] == 0) return false;
-  if (WiFi.status() != WL_CONNECTED) return false;
-  if (!mqtt) mqtt = new AsyncMqttClient();
-  if (mqtt->connected()) return true;
-  
+  if (mqttServer[0] == 0)
+    return false;
+  if (WiFi.status() != WL_CONNECTED)
+    return false;
+  if (!mqtt)
+    mqtt = new AsyncMqttClient();
+  if (mqtt->connected())
+    return true;
+
   IPAddress mqttIP;
   if (mqttIP.fromString(mqttServer)) //see if server is IP or domain
   {
     mqtt->setServer(mqttIP, WLED_MQTT_PORT);
-  } else {
+  }
+  else
+  {
     mqtt->setServer(mqttServer, WLED_MQTT_PORT);
   }
   mqtt->setClientId(escapedMac.c_str());

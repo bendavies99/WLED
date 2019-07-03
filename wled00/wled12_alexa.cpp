@@ -5,14 +5,18 @@
  * https://github.com/kakopappa/arduino-esp8266-alexa-wemo-switch
  * https://github.com/probonopd/ESP8266HueEmulator
  */
-void prepareIds() {
+
+#include "Arduino.h"
+#include "wled00.h"
+void prepareIds()
+{
   escapedMac = WiFi.macAddress();
   escapedMac.replace(":", "");
   escapedMac.toLowerCase();
 }
 
 #ifndef WLED_DISABLE_ALEXA
-void onAlexaChange(EspalexaDevice* dev);
+void onAlexaChange(EspalexaDevice *dev);
 
 void alexaInit()
 {
@@ -23,7 +27,9 @@ void alexaInit()
       espalexaDevice = new EspalexaDevice(alexaInvocationName, onAlexaChange, EspalexaDeviceType::extendedcolor);
       espalexa.addDevice(espalexaDevice);
       espalexa.begin(&server);
-    } else {
+    }
+    else
+    {
       espalexaDevice->setName(alexaInvocationName);
     }
   }
@@ -31,14 +37,15 @@ void alexaInit()
 
 void handleAlexa()
 {
-  if (!alexaEnabled || WiFi.status() != WL_CONNECTED) return;
+  if (!alexaEnabled || WiFi.status() != WL_CONNECTED)
+    return;
   espalexa.loop();
 }
 
-void onAlexaChange(EspalexaDevice* dev)
+void onAlexaChange(EspalexaDevice *dev)
 {
   EspalexaDeviceProperty m = espalexaDevice->getLastChangedProperty();
-  
+
   if (m == EspalexaDeviceProperty::on)
   {
     if (!macroAlexaOn)
@@ -48,8 +55,11 @@ void onAlexaChange(EspalexaDevice* dev)
         bri = briLast;
         colorUpdated(10);
       }
-    } else applyMacro(macroAlexaOn);
-  } else if (m == EspalexaDeviceProperty::off)
+    }
+    else
+      applyMacro(macroAlexaOn);
+  }
+  else if (m == EspalexaDeviceProperty::off)
   {
     if (!macroAlexaOff)
     {
@@ -59,24 +69,30 @@ void onAlexaChange(EspalexaDevice* dev)
         bri = 0;
         colorUpdated(10);
       }
-    } else applyMacro(macroAlexaOff);
-  } else if (m == EspalexaDeviceProperty::bri)
+    }
+    else
+      applyMacro(macroAlexaOff);
+  }
+  else if (m == EspalexaDeviceProperty::bri)
   {
     bri = espalexaDevice->getValue();
     colorUpdated(10);
-  } else //color
+  }
+  else //color
   {
     uint32_t color = espalexaDevice->getRGB();
     col[0] = ((color >> 16) & 0xFF);
-    col[1] = ((color >>  8) & 0xFF);
+    col[1] = ((color >> 8) & 0xFF);
     col[2] = (color & 0xFF);
-    if (useRGBW) colorRGBtoRGBW(col);
+    if (useRGBW)
+      colorRGBtoRGBW(col);
     colorUpdated(10);
   }
 }
 
-
 #else
- void alexaInit(){}
- void handleAlexa(){}
+void alexaInit()
+{
+}
+void handleAlexa() {}
 #endif

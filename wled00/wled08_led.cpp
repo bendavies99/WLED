@@ -2,30 +2,35 @@
  * LED methods
  */
 
+#include "Arduino.h"
+#include "wled00.h"
+
 void toggleOnOff()
 {
   if (bri == 0)
   {
     bri = briLast;
-  } else
+  }
+  else
   {
     briLast = bri;
     bri = 0;
   }
 }
 
-
-void setAllLeds() {
+void setAllLeds()
+{
   if (!realtimeActive || !arlsForceMaxBri)
   {
-    double d = briT*briMultiplier;
-    int val = d/100;
-    if (val > 255) val = 255;
+    double d = briT * briMultiplier;
+    int val = d / 100;
+    if (val > 255)
+      val = 255;
     strip.setBrightness(val);
   }
   if (!enableSecTransition)
   {
-    for (byte i = 0; i<4; i++)
+    for (byte i = 0; i < 4; i++)
     {
       colSecT[i] = colSec[i];
     }
@@ -39,10 +44,9 @@ void setAllLeds() {
   strip.setColor(1, colSecT[0], colSecT[1], colSecT[2], colSecT[3]);
 }
 
-
 void setLedsStandard()
 {
-  for (byte i=0; i<4; i++)
+  for (byte i = 0; i < 4; i++)
   {
     colOld[i] = col[i];
     colT[i] = col[i];
@@ -54,18 +58,19 @@ void setLedsStandard()
   setAllLeds();
 }
 
-
 bool colorChanged()
 {
-  for (byte i=0; i<4; i++)
+  for (byte i = 0; i < 4; i++)
   {
-    if (col[i] != colIT[i]) return true;
-    if (colSec[i] != colSecIT[i]) return true;
+    if (col[i] != colIT[i])
+      return true;
+    if (colSec[i] != colSecIT[i])
+      return true;
   }
-  if (bri != briIT) return true;
+  if (bri != briIT)
+    return true;
   return false;
 }
-
 
 void colorUpdated(int callMode)
 {
@@ -76,41 +81,54 @@ void colorUpdated(int callMode)
   {
     if (nightlightActive && !nightlightActiveOld && callMode != 3 && callMode != 5)
     {
-      notify(4); interfaceUpdateCallMode = 4; return;
+      notify(4, false);
+      interfaceUpdateCallMode = 4;
+      return;
     }
-    else if (fxChanged) {
-      notify(6);
-      if (callMode != 8) interfaceUpdateCallMode = 6;
-      if (realtimeTimeout == UINT32_MAX) realtimeTimeout = 0;
+    else if (fxChanged)
+    {
+      notify(6, false);
+      if (callMode != 8)
+        interfaceUpdateCallMode = 6;
+      if (realtimeTimeout == UINT32_MAX)
+        realtimeTimeout = 0;
     }
     return; //no change
   }
-  if (realtimeTimeout == UINT32_MAX) realtimeTimeout = 0;
+  if (realtimeTimeout == UINT32_MAX)
+    realtimeTimeout = 0;
   if (callMode != 5 && nightlightActive && nightlightFade)
   {
     briNlT = bri;
     nightlightDelayMs -= (millis() - nightlightStartTime);
     nightlightStartTime = millis();
   }
-  for (byte i=0; i<4; i++)
+  for (byte i = 0; i < 4; i++)
   {
     colIT[i] = col[i];
     colSecIT[i] = colSec[i];
   }
   briIT = bri;
-  if (bri > 0) briLast = bri;
-  
-  notify(callMode);
-  
+  if (bri > 0)
+    briLast = bri;
+
+  notify(callMode, false);
+
   if (fadeTransition)
   {
     //set correct delay if not using notification delay
-    if (callMode != 3) transitionDelayTemp = transitionDelay;
-    if (transitionDelayTemp == 0) {setLedsStandard(); strip.trigger(); return;}
-    
+    if (callMode != 3)
+      transitionDelayTemp = transitionDelay;
+    if (transitionDelayTemp == 0)
+    {
+      setLedsStandard();
+      strip.trigger();
+      return;
+    }
+
     if (transitionActive)
     {
-      for (byte i=0; i<4; i++)
+      for (byte i = 0; i < 4; i++)
       {
         colOld[i] = colT[i];
         colSecOld[i] = colSecT[i];
@@ -121,31 +139,33 @@ void colorUpdated(int callMode)
     strip.setTransitionMode(true);
     transitionActive = true;
     transitionStartTime = millis();
-  } else
+  }
+  else
   {
     setLedsStandard();
     strip.trigger();
   }
 
-  if (callMode == 8) return;
+  if (callMode == 8)
+    return;
   //set flag to update blynk and mqtt
   interfaceUpdateCallMode = callMode;
 }
 
-
 void updateInterfaces(uint8_t callMode)
 {
-  #ifndef WLED_DISABLE_ALEXA
-  if (espalexaDevice != nullptr && callMode != 10) {
+#ifndef WLED_DISABLE_ALEXA
+  if (espalexaDevice != nullptr && callMode != 10)
+  {
     espalexaDevice->setValue(bri);
     espalexaDevice->setColor(col[0], col[1], col[2]);
   }
-  #endif
-  if (callMode != 9 && callMode != 5) updateBlynk();
+#endif
+  if (callMode != 9 && callMode != 5)
+    updateBlynk();
   publishMqtt();
   lastInterfaceUpdate = millis();
 }
-
 
 void handleTransitions()
 {
@@ -155,10 +175,10 @@ void handleTransitions()
     updateInterfaces(interfaceUpdateCallMode);
     interfaceUpdateCallMode = 0; //disable
   }
-  
+
   if (transitionActive && transitionDelayTemp > 0)
   {
-    float tper = (millis() - transitionStartTime)/(float)transitionDelayTemp;
+    float tper = (millis() - transitionStartTime) / (float)transitionDelayTemp;
     if (tper >= 1.0)
     {
       strip.setTransitionMode(false);
@@ -167,19 +187,19 @@ void handleTransitions()
       setLedsStandard();
       return;
     }
-    if (tper - tperLast < 0.004) return;
+    if (tper - tperLast < 0.004)
+      return;
     tperLast = tper;
-    for (byte i=0; i<4; i++)
+    for (byte i = 0; i < 4; i++)
     {
-      colT[i] = colOld[i]+((col[i] - colOld[i])*tper);
-      colSecT[i] = colSecOld[i]+((colSec[i] - colSecOld[i])*tper);
+      colT[i] = colOld[i] + ((col[i] - colOld[i]) * tper);
+      colSecT[i] = colSecOld[i] + ((colSec[i] - colSecOld[i]) * tper);
     }
-    briT    = briOld   +((bri    - briOld   )*tper);
-    
+    briT = briOld + ((bri - briOld) * tper);
+
     setAllLeds();
   }
 }
-
 
 void handleNightlight()
 {
@@ -188,14 +208,14 @@ void handleNightlight()
     if (!nightlightActiveOld) //init
     {
       nightlightStartTime = millis();
-      nightlightDelayMs = (int)(nightlightDelayMins*60000);
+      nightlightDelayMs = (int)(nightlightDelayMins * 60000);
       nightlightActiveOld = true;
       briNlT = bri;
     }
-    float nper = (millis() - nightlightStartTime)/((float)nightlightDelayMs);
+    float nper = (millis() - nightlightStartTime) / ((float)nightlightDelayMs);
     if (nightlightFade)
     {
-      bri = briNlT + ((nightlightTargetBri - briNlT)*nper);
+      bri = briNlT + ((nightlightTargetBri - briNlT) * nper);
       colorUpdated(5);
     }
     if (nper >= 1)
@@ -207,9 +227,11 @@ void handleNightlight()
         colorUpdated(5);
       }
       updateBlynk();
-      if (bri == 0) briLast = briNlT;
+      if (bri == 0)
+        briLast = briNlT;
     }
-  } else if (nightlightActiveOld) //early de-init
+  }
+  else if (nightlightActiveOld) //early de-init
   {
     nightlightActiveOld = false;
   }
@@ -217,9 +239,12 @@ void handleNightlight()
   //also handle preset cycle here
   if (presetCyclingEnabled && (millis() - presetCycledTime > presetCycleTime))
   {
-    applyPreset(presetCycCurr,presetApplyBri,presetApplyCol,presetApplyFx);
-    presetCycCurr++; if (presetCycCurr > presetCycleMax) presetCycCurr = presetCycleMin;
-    if (presetCycCurr > 25) presetCycCurr = 1;
+    applyPreset(presetCycCurr, presetApplyBri, presetApplyCol, presetApplyFx);
+    presetCycCurr++;
+    if (presetCycCurr > presetCycleMax)
+      presetCycCurr = presetCycleMin;
+    if (presetCycCurr > 25)
+      presetCycCurr = 1;
     colorUpdated(8);
     presetCycledTime = millis();
   }
