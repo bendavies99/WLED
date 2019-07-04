@@ -11,6 +11,7 @@
 
 #include "Arduino.h"
 #include "dclarations.h"
+#include "config.h"
 
 //ESP8266-01 (blue) got too little storage space to work with all features of WLED. To use it, you must use ESP8266 Arduino Core v2.4.2 and the setting 512K(No SPIFFS).
 
@@ -192,24 +193,23 @@ extern char ntpServerName[];   //NTP server to use
 
 extern char clientSSID[33];
 extern char clientPass[65];
-extern char cmDNS[33];             //mDNS address (placeholder, will be replaced by wledXXXXXXXXXXXX.local)
-extern char apSSID[33];            //AP off by default (unless setup)
-extern byte apChannel;             //2.4GHz WiFi AP channel (1-13)
-extern byte apHide;                //hidden AP SSID
-extern byte apWaitTimeSecs;        //time to wait for connection before opening AP
-extern bool recoveryAPDisabled;    //never open AP (not recommended)
-extern IPAddress staticIP;         //static IP of ESP
-extern IPAddress staticGateway;    //gateway (router) IP
-extern IPAddress staticSubnet;     //most common subnet in home networks
-extern uint16_t ledCount;          //overcurrent prevented by ABL
-extern bool useRGBW;               //SK6812 strips can contain an extra White channel
-extern bool autoRGBtoRGBW;         //if RGBW enabled, calculate White channel from RGB
-#define ABL_MILLIAMPS_DEFAULT 850; //auto lower brightness to stay close to milliampere limit
-extern bool turnOnAtBoot;          //turn on LEDs at power-up
-extern byte bootPreset;            //save preset to load after power-up
-extern byte colS[];                //default RGB(W) color
-extern byte colSecS[];             //default RGB(W) secondary color
-extern byte briS;                  //default brightness
+extern char cmDNS[33];          //mDNS address (placeholder, will be replaced by wledXXXXXXXXXXXX.local)
+extern char apSSID[33];         //AP off by default (unless setup)
+extern byte apChannel;          //2.4GHz WiFi AP channel (1-13)
+extern byte apHide;             //hidden AP SSID
+extern byte apWaitTimeSecs;     //time to wait for connection before opening AP
+extern bool recoveryAPDisabled; //never open AP (not recommended)
+extern IPAddress staticIP;      //static IP of ESP
+extern IPAddress staticGateway; //gateway (router) IP
+extern IPAddress staticSubnet;  //most common subnet in home networks
+extern uint16_t ledCount;       //overcurrent prevented by ABL
+extern bool useRGBW;            //SK6812 strips can contain an extra White channel
+extern bool autoRGBtoRGBW;      //if RGBW enabled, calculate White channel from RGB
+extern bool turnOnAtBoot;       //turn on LEDs at power-up
+extern byte bootPreset;         //save preset to load after power-up
+extern byte colS[];             //default RGB(W) color
+extern byte colSecS[];          //default RGB(W) secondary color
+extern byte briS;               //default brightness
 extern byte effectDefault;
 extern byte effectSpeedDefault;
 extern byte effectIntensityDefault; //intensity is supported on some effects as an additional parameter (e.g. for blink you can change the duty cycle)

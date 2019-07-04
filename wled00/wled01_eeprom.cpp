@@ -292,9 +292,10 @@ void loadSettingsFromEEPROM(bool first)
   apHide = EEPROM.read(228);
   if (apHide > 1)
     apHide = 1;
-  ledCount = EEPROM.read(229) + ((EEPROM.read(398) << 8) & 0xFF00);
+
+    ledCount = EEPROM.read(229) + ((EEPROM.read(398) << 8) & 0xFF00);
   if (ledCount > 1200 || ledCount == 0)
-    ledCount = 30;
+    ledCount = C_NUM_LEDS;
 
   notifyButton = EEPROM.read(230);
   notifyTwice = EEPROM.read(231);

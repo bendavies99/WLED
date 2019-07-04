@@ -3,7 +3,7 @@ char versionString[] = "0.8.5-dev";
 
 //AP and OTA default passwords (for maximum change them!)
 char apPass[65] = "wled1234";
-char otaPass[33] = "wledota";
+char otaPass[33] = C_OTA_PASSWORD;
 
 //Hardware CONFIG (only changeble HERE, not at runtime)
 //LED strip pin, button pin and IR pin changeable in NpbWrapper.h!
@@ -13,24 +13,24 @@ byte auxTriggeredState = 0;                   //0: input 1: high 2: low
 char ntpServerName[] = "0.wled.pool.ntp.org"; //NTP server to use
 
 //WiFi CONFIG (all these can be changed via web UI, no need to set them here)
-char clientSSID[33] = "Your_Network";
-char clientPass[65] = "";
-char cmDNS[33] = "x";                     //mDNS address (placeholder, will be replaced by wledXXXXXXXXXXXX.local)
+char clientSSID[33] = C_WIFI_SSID;
+char clientPass[65] = C_WIFI_PASSWORD;
+char cmDNS[33] = "kitchen.local";         //mDNS address (placeholder, will be replaced by wledXXXXXXXXXXXX.local)
 char apSSID[33] = "";                     //AP off by default (unless setup)
 byte apChannel = 1;                       //2.4GHz WiFi AP channel (1-13)
 byte apHide = 0;                          //hidden AP SSID
 byte apWaitTimeSecs = 32;                 //time to wait for connection before opening AP
 bool recoveryAPDisabled = false;          //never open AP (not recommended)
-IPAddress staticIP(0, 0, 0, 0);           //static IP of ESP
-IPAddress staticGateway(0, 0, 0, 0);      //gateway (router) IP
+IPAddress staticIP(C_WIFI_IP);            //static IP of ESP
+IPAddress staticGateway(C_WIFI_GATEWAY);  //gateway (router) IP
 IPAddress staticSubnet(255, 255, 255, 0); //most common subnet in home networks
 
 //LED CONFIG
-uint16_t ledCount = 30;     //overcurrent prevented by ABL
-bool useRGBW = false;       //SK6812 strips can contain an extra White channel
-bool autoRGBtoRGBW = false; //if RGBW enabled, calculate White channel from RGB//auto lower brightness to stay close to milliampere limit
-bool turnOnAtBoot = true;   //turn on LEDs at power-up
-byte bootPreset = 0;        //save preset to load after power-up
+uint16_t ledCount = C_NUM_LEDS; //overcurrent prevented by ABL
+bool useRGBW = false;           //SK6812 strips can contain an extra White channel
+bool autoRGBtoRGBW = false;     //if RGBW enabled, calculate White channel from RGB//auto lower brightness to stay close to milliampere limit
+bool turnOnAtBoot = true;       //turn on LEDs at power-up
+byte bootPreset = 0;            //save preset to load after power-up
 
 byte colS[]{255, 159, 0, 0}; //default RGB(W) color
 byte colSecS[]{0, 0, 0, 0};  //default RGB(W) secondary color
@@ -55,11 +55,11 @@ bool skipFirstLed = false; //ignore first LED in strip (useful if you need the L
 byte briMultiplier = 100;  //% of brightness to set (to limit power, if you set it to 50 and set bri to 255, actual brightness will be 127)
 
 //User Interface CONFIG
-char serverDescription[33] = "WLED Light"; //Name of module
-byte currentTheme = 7;                     //UI theme index for settings and classic UI
-byte uiConfiguration = 0;                  //0: automatic (depends on user-agent) 1: classic UI 2: mobile UI
-bool useHSB = true;                        //classic UI: use HSB sliders instead of RGB by default
-char cssFont[33] = "Verdana";              //font to use in classic UI
+char serverDescription[33] = C_SERVER_NAME; //Name of module
+byte currentTheme = 7;                      //UI theme index for settings and classic UI
+byte uiConfiguration = 0;                   //0: automatic (depends on user-agent) 1: classic UI 2: mobile UI
+bool useHSB = true;                         //classic UI: use HSB sliders instead of RGB by default
+char cssFont[33] = "Verdana";               //font to use in classic UI
 
 bool useHSBDefault = useHSB;
 
@@ -80,7 +80,7 @@ bool notifyMacro = false;                  //send notification for macro
 bool notifyHue = true;                     //send notification if Hue light changes
 bool notifyTwice = false;                  //notifications use UDP: enable if devices don't sync reliably
 
-bool alexaEnabled = true;               //enable device discovery by Amazon Echo
+bool alexaEnabled = false;              //enable device discovery by Amazon Echo
 char alexaInvocationName[33] = "Light"; //speech control name of device. Choose something voice-to-text can understand
 
 char blynkApiKey[36] = ""; //Auth token for Blynk server. If empty, no connection will be made
@@ -95,9 +95,9 @@ bool e131Enabled = true; //settings for E1.31 (sACN) protocol
 uint16_t e131Universe = 1;
 bool e131Multicast = false;
 
-char mqttDeviceTopic[33] = "";        //main MQTT topic (individual per device, default is wled/mac)
-char mqttGroupTopic[33] = "wled/all"; //second MQTT topic (for example to group devices)
-char mqttServer[33] = "";             //both domains and IPs should work (no SSL)
+char mqttDeviceTopic[33] = C_MQTT_LISTEN_TOPIC; //main MQTT topic (individual per device, default is wled/mac)
+char mqttGroupTopic[33] = C_MQTT_GROUP_TOPIC;   //second MQTT topic (for example to group devices)
+char mqttServer[33] = C_MQTT_SERVER;            //both domains and IPs should work (no SSL)
 
 bool huePollingEnabled = false;    //poll hue bridge for light state
 uint16_t huePollIntervalMs = 2500; //low values (< 1sec) may cause lag but offer quicker response
@@ -136,9 +136,9 @@ byte macroAlexaOn = 0, macroAlexaOff = 0;
 byte macroButton = 0, macroLongPress = 0, macroDoublePress = 0;
 
 //Security CONFIG
-bool otaLock = false;    //prevents OTA firmware updates without password. ALWAYS enable if system exposed to any public networks
-bool wifiLock = false;   //prevents access to WiFi settings when OTA lock is enabled
-bool aOtaEnabled = true; //ArduinoOTA allows easy updates directly from the IDE. Careful, it does not auto-disable when OTA lock is on
+bool otaLock = false;     //prevents OTA firmware updates without password. ALWAYS enable if system exposed to any public networks
+bool wifiLock = false;    //prevents access to WiFi settings when OTA lock is enabled
+bool aOtaEnabled = false; //ArduinoOTA allows easy updates directly from the IDE. Careful, it does not auto-disable when OTA lock is on
 
 uint16_t userVar0 = 0, userVar1 = 0;
 

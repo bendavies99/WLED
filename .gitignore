@@ -3,3 +3,5 @@
 .piolibdeps
 .vscode
 !.vscode/extensions.json
+
+wled00/config.h

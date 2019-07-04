@@ -10,7 +10,7 @@ void wledInit()
   EEPROM.begin(EEPSIZE);
   ledCount = EEPROM.read(229) + ((EEPROM.read(398) << 8) & 0xFF00);
   if (ledCount > 1200 || ledCount == 0)
-    ledCount = 30;
+    ledCount = C_NUM_LEDS;
 #ifndef ARDUINO_ARCH_ESP32
 #if LEDPIN == 3
   if (ledCount > 300)
