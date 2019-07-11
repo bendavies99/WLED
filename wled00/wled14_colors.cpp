@@ -186,7 +186,13 @@ void colorFromDecOrHexString(byte *rgb, char *in)
 
   if (first == '#' || first == 'h' || first == 'H') //is HEX encoded
   {
-    c = strtoul(in + 1, NULL, 16);
+    //Remove Extra charatrs (e.g. #FF00FFAjdfhs&$%£)
+    char _copied[6];
+    for (int i = 0; i < 6; i++)
+    {
+      _copied[i] = in[i + 1];
+    }
+    c = strtoul(_copied, NULL, 16);
   }
   else
   {
